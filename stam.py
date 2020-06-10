@@ -1,2 +1,3 @@
 def func():
-    print(5)
+    return
+
