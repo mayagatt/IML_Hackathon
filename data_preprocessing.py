@@ -22,7 +22,7 @@ def split_train_test(path):
     while len(lines) > 0:
         rand = random.randint(1, 5)
         if len(lines) >= rand:
-            line_groups.append(" ".join(lines[0:rand]))
+            line_groups.append(" ".join(lines[0:rand]).strip())
             del lines[0:rand]
     train, test = train_test_split(line_groups, test_size=0.2)
     return train, test
@@ -46,7 +46,4 @@ def create_train_test_data():
 
     total_train_df = pd.concat(total_train, ignore_index=True)
     total_test_df = pd.concat(total_test, ignore_index=True)
-    print('train set is')
-    print(total_train_df)
-    print('test set is ' + str(total_test_df))
     return total_train_df, total_test_df
