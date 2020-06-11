@@ -1,4 +1,3 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
@@ -58,16 +57,19 @@ def fit_no_pipeline(docs_new):
 
 def fit_with_pipeline(docs_new, docs_new_target):
     text_clf = Pipeline([('vect', CountVectorizer()),
-                         ('tfidf', TfidfVectorizer()),
+                         ('tfidf', TfidfTransformer()),
                          ('clf', MultinomialNB())])
 
-    text_clf.fit(train_text.tolist(), train_target.tolist())
+    text_clf.fit(train_text, train_target)
     predicted = text_clf.predict(docs_new)
-    np.mean(predicted == docs_new_target)
+    mean_pred = np.mean(predicted == docs_new_target)
+    print(mean_pred)
     return text_clf
 
 
-new_strings = ["get_bottom_edges(edges, n=1)",
-               "if LooseVersion(tf.__version__) < LooseVersion('1.1.0'):if LooseVersion(tf.__version__) < LooseVersion('1.1.0'):"]
-
-fit_no_pipeline(new_strings)
+sample_size = [5, 10, 100, 500, 1000, 10000, 20000, 100000]
+for m in sample_size:
+    temp_test = train.sample(m)
+    new_strings = temp_test['string_group']
+    new_targets = temp_test['project_number']
+    fit_with_pipeline(new_strings, new_targets)
