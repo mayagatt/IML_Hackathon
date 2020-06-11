@@ -88,8 +88,8 @@ def log_regression():
         plt.subplot(2, 3, idx + 1)
         s_acc = run_model(model, s)
         accuracies.append(s_acc)
-    plt.suptitle("Model: " + str(model.__class__.__name__ + "s: " + solves[
-        np.argmax(accuracies)] + " with accuracy: " + np.max(accuracies)), fontsize=8)
+    plt.suptitle("Model: " + str(model.__class__.__name__) + "solver: " + solves[np.argmax(accuracies)] + " with accuracy: " + str(np.max(accuracies)), fontsize=8)
+
     plt.savefig(model.__class__.__name__ + "_solves.png")
     plt.show()
 
@@ -104,8 +104,7 @@ def knn():
         plt.subplot(2, 3, idx + 1)
         s_acc = run_model(model, k)
         accuracies.append(s_acc)
-    plt.suptitle("Model: " + str(model.__class__.__name__ + "k: " + ks[
-        np.argmax(accuracies)] + " with accuracy: " + np.max(accuracies)), fontsize=8)
+    plt.suptitle("Model: " + str(model.__class__.__name__) + "k: " + str(ks[np.argmax(accuracies)]) + " with accuracy: " + str(np.max(accuracies)), fontsize=8)
     plt.savefig(model.__class__.__name__ + "_ks.png")
     plt.show()
 
@@ -120,8 +119,7 @@ def svc():
         plt.subplot(2, 3, idx + 1)
         s_acc = run_model(model, C)
         accuracies.append(s_acc)
-    plt.suptitle("Model: " + str(model.__class__.__name__ + "C: " + Cs[
-        np.argmax(accuracies)] + " with accuracy: " + np.max(accuracies)), fontsize=8)
+    plt.suptitle("Model: " + str(model.__class__.__name__) + "C: " + str(Cs[np.argmax(accuracies)]) + " with accuracy: " + str(np.max(accuracies)), fontsize=8)
     plt.savefig(model.__class__.__name__ + "_Cs.png")
     plt.show()
 
@@ -136,13 +134,10 @@ def random_forest():
         plt.subplot(2, 3, idx + 1)
         s_acc = run_model(model, d)
         accuracies.append(s_acc)
-    plt.suptitle("Model: " + str(model.__class__.__name__ + "d: " + depths[
-        np.argmax(accuracies)] + " with accuracy: " + np.max(accuracies)), fontsize=8)
+    plt.suptitle("Model: " + str(model.__class__.__name__) + "d: " + str(depths[np.argmax(accuracies)]) + " with accuracy: " + str(np.max(accuracies)), fontsize=8)
     plt.savefig(model.__class__.__name__ + "_depths.png")
     plt.show()
 
 
 log_regression()
 knn()
-random_forest()
-svc()
