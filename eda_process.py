@@ -1,57 +1,73 @@
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas
+from sklearn.naive_bayes import MultinomialNB
+import data_preprocessing as dpre
 
-BUILDING_TOOL_PATH = "building_tool_all_data.txt"
-JINA_PATH = "jina_all_data.txt"
-HOROVOD_PATH = "horovod_all_data.txt"
-ESPNET_PATH = "espnet_all_data.txt"
-PYSOLFC_PATH = "PySolFC_all_data.txt"
-PADDLEHUB_PATH = "PaddleHub_all_data.txt"
-PYTORCH_GEOMETRIC_PATH = "pytorch_geometric_all_data.txt"
+train, test = dpre.create_train_test_data()
+train_text = train['string_group']
+train_target = train['project_number']
+test_text = test['string_group']
+
+BUILDING_TOOL_PATH = "building_tool_all_data.txt"  # 0
+JINA_PATH = "jina_all_data.txt"  # 1
+HOROVOD_PATH = "horovod_all_data.txt"  # 2
+ESPNET_PATH = "espnet_all_data.txt"  # 3
+PYSOLFC_PATH = "PySolFC_all_data.txt"  # 4
+PADDLEHUB_PATH = "PaddleHub_all_data.txt"  # 5
+PYTORCH_GEOMETRIC_PATH = "pytorch_geometric_all_data.txt"  # 6
 ENCODING = "utf8"
 
-path_lst = [BUILDING_TOOL_PATH, JINA_PATH, HOROVOD_PATH, ESPNET_PATH,
-            PYSOLFC_PATH, PADDLEHUB_PATH, PYTORCH_GEOMETRIC_PATH]
+path_lst = [BUILDING_TOOL_PATH, ESPNET_PATH, HOROVOD_PATH, JINA_PATH,
+            PADDLEHUB_PATH, PYSOLFC_PATH, PYTORCH_GEOMETRIC_PATH]
 
-vocab_lst = []
-Xs = []
-word_count_dict = []
-
-for path in path_lst:
-    corpus = open(path, encoding=ENCODING)
-    vectorizer = CountVectorizer(input='file', decode_error='ignore', strip_accents='unicode')
-    X = vectorizer.fit_transform([corpus])
-    vocab_lst.append(vectorizer.vocabulary_)
-    Xs.append(X)
-
-for i in range(len(Xs)):
-    print(path_lst[i])  # TODO: to help track loop process, remove from final code
-    word_count = []
-    for key, value in vocab_lst[i].items():
-        word_count.append((key, Xs[i].toarray().T[value][0]))  # tuple: (word, # of appearances)
-    word_count_dict.append(dict((x, y) for x, y in word_count))  # turn tuple to dict key:value
+vocab_lst = []  # list of CountVectorizer.vocabulary_
+Xs = []  # list of X created by CountVectorizer.fit_transform
 
 
-def hist_from_dict(pathname, dict_to_plot):
+def files_to_strings(paths):
     """
-    Create histogram from given dictionary.
+    Function receives list of paths and returns list where each file is a single string.
+    :param paths:
+    :return:
     """
-    df = pandas.Series(dict_to_plot).plot(kind='area')
-    plt.title("Word Count: " + pathname, fontsize=8)
-    plt.tick_params(axis='x', labelsize=6)
-    plt.savefig("word_count_hist_" + pathname + ".png")
-    plt.show()
+    docs = []
+    for path in path_lst:
+        with open(path, 'r', encoding=ENCODING, errors='ignore') as f:
+            docs.append(f.read())
+    return docs
 
 
-def create_word_histograms(file_dicts):
-    """
-    Create histograms for multiple dictionaries.
-    :param file_dicts: List of dictionaries.
-    """
-    for i in range(len(file_dicts)):
-        hist_from_dict(path_lst[i], file_dicts[i])
+def fit_no_pipeline(docs_new):
+    cv = CountVectorizer()
+    X_count = cv.fit_transform(train_text)
+
+    tf_transformer = TfidfTransformer()
+    X_train_tf = tf_transformer.fit_transform(X_count)
+
+    clf = MultinomialNB().fit(X_train_tf, train_target)
+    X_new_counts = cv.transform(docs_new)
+    X_new_tfidf = tf_transformer.transform(X_new_counts)
+    predicted = clf.predict(X_new_tfidf)
+
+    for doc, category in zip(docs_new, predicted):
+        print('%r => %d' % (doc, category))
 
 
-create_word_histograms(word_count_dict)
+def fit_with_pipeline(docs_new, docs_new_target):
+    text_clf = Pipeline([('vect', CountVectorizer()),
+                         ('tfidf', TfidfVectorizer()),
+                         ('clf', MultinomialNB())])
+
+    text_clf.fit(train_text.tolist(), train_target.tolist())
+    predicted = text_clf.predict(docs_new)
+    np.mean(predicted == docs_new_target)
+    return text_clf
+
+
+new_strings = ["get_bottom_edges(edges, n=1)",
+               "if LooseVersion(tf.__version__) < LooseVersion('1.1.0'):if LooseVersion(tf.__version__) < LooseVersion('1.1.0'):"]
+
+fit_no_pipeline(new_strings)
