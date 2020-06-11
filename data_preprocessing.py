@@ -1,6 +1,8 @@
 import random
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
 
 
 def split_train_test(path):
@@ -33,6 +35,7 @@ def create_train_test_data():
                     'jina_all_data.txt', 'PaddleHub_all_data.txt', 'PySolFC_all_data.txt', 'pytorch_geometric_all_data.txt']
     total_train = []
     total_test = []
+    random.seed(22)
     for i, p in enumerate(project_list):
         train, test = split_train_test(p)
         train_df = pd.DataFrame({"string_group" : train, "project_number" : i})
