@@ -5,10 +5,12 @@ import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 import data_preprocessing as dpre
 
-train, test = dpre.create_train_test_data()
-train_text = train['string_group']
-train_target = train['project_number']
-test_text = test['string_group']
+train, test = dpre.create_train_test_data()  # create train and test dataframes
+train_text = train['string_group']  # extract train text from train
+train_target = train['project_number']  # extract train_text labels from train
+test_text = test['string_group']  # extract test text from test
+test_target = test['project_number']  # extract test_text labels from test
+
 
 BUILDING_TOOL_PATH = "building_tool_all_data.txt"  # 0
 JINA_PATH = "jina_all_data.txt"  # 1
@@ -22,54 +24,17 @@ ENCODING = "utf8"
 path_lst = [BUILDING_TOOL_PATH, ESPNET_PATH, HOROVOD_PATH, JINA_PATH,
             PADDLEHUB_PATH, PYSOLFC_PATH, PYTORCH_GEOMETRIC_PATH]
 
-vocab_lst = []  # list of CountVectorizer.vocabulary_
-Xs = []  # list of X created by CountVectorizer.fit_transform
 
-
-def files_to_strings(paths):
-    """
-    Function receives list of paths and returns list where each file is a single string.
-    :param paths:
-    :return:
-    """
-    docs = []
-    for path in path_lst:
-        with open(path, 'r', encoding=ENCODING, errors='ignore') as f:
-            docs.append(f.read())
-    return docs
-
-
-def fit_no_pipeline(docs_new):
-    cv = CountVectorizer()
-    X_count = cv.fit_transform(train_text)
-
-    tf_transformer = TfidfTransformer()
-    X_train_tf = tf_transformer.fit_transform(X_count)
-
-    clf = MultinomialNB().fit(X_train_tf, train_target)
-    X_new_counts = cv.transform(docs_new)
-    X_new_tfidf = tf_transformer.transform(X_new_counts)
-    predicted = clf.predict(X_new_tfidf)
-
-    for doc, category in zip(docs_new, predicted):
-        print('%r => %d' % (doc, category))
-
-
-def fit_with_pipeline(docs_new, docs_new_target):
+def fit_model(model):
     text_clf = Pipeline([('vect', CountVectorizer()),
                          ('tfidf', TfidfTransformer()),
-                         ('clf', MultinomialNB())])
+                         ('clf', model)])
 
     text_clf.fit(train_text, train_target)
-    predicted = text_clf.predict(docs_new)
-    mean_pred = np.mean(predicted == docs_new_target)
-    print(mean_pred)
     return text_clf
 
 
-sample_size = [5, 10, 100, 500, 1000, 10000, 20000, 100000]
-for m in sample_size:
-    temp_test = train.sample(m)
-    new_strings = temp_test['string_group']
-    new_targets = temp_test['project_number']
-    fit_with_pipeline(new_strings, new_targets)
+def score_model(clf, docs_new, docs_new_target):
+    score = clf.score(docs_new, docs_new_target)
+    return score
+
