@@ -137,7 +137,29 @@ def random_forest():
     plt.suptitle("Model: " + str(model.__class__.__name__) + "d: " + str(depths[np.argmax(accuracies)]) + " with accuracy: " + str(np.max(accuracies)), fontsize=8)
     plt.savefig(model.__class__.__name__ + "_depths.png")
     plt.show()
+    
+    
+def ada_boost():
+    '''
 
+    :return:
+    '''
+    estimators = [SVC(probability=True, kernel='linear'), LogisticRegression(), MultinomialNB()]
+    model = None
+    accuracies = []
+    for idx, estimator in enumerate(estimators):
+        print(estimator)
+        model = AdaBoostClassifier(base_estimator=estimator)
+        print(model)
+        plt.subplot(2, 3, idx + 1)
+        s_acc = run_model(model, estimator)
+        accuracies.append(s_acc)
+        print('accuracie for ' + str(estimator) + ' is ' + str(s_acc))
+    plt.suptitle(
+        "Model: " + str(model.__class__.__name__) + "solver: " + str(estimator)[
+            np.argmax(accuracies)] + " with accuracy: " + str(
+            np.max(accuracies)), fontsize=8)
 
-log_regression()
-knn()
+    plt.savefig(model.__class__.__name__ + "_solves.png")
+    plt.show()
+
